@@ -6,18 +6,29 @@ const shell = require('shelljs');
 var baseDir = '/home/osboxes/evtloader/';
 var esHost = 'localhost';
 
+var storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, baseDir)
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname)
+  }
+})
+
 var upload = multer({
-  dest: baseDir
+  storage: storage,
+
 });
 
 var app = express();
 
 app.use(cors())
 
-app.post("/upload", upload.single('evtlog'), function(req, res) {
+app.post("/evtlog", upload.single('evtlog'), function(req, res) {
 
+    console.log('Requested /evtlog, file: ' + req.file.filename);
     if (!req.file) {
-      return res.status(400).send('No files were uploaded.');
+      return res.status(400).send('No files were uploaded');
     }
     else {
       console.dir(req.file);
@@ -35,6 +46,18 @@ app.post("/upload", upload.single('evtlog'), function(req, res) {
             return res.status(500).send(stderr);
         }
       });
+    }
+});
+
+app.post("/crl", upload.single('crl'), function(req, res) {
+
+    console.log('Requested /crl, file: ' + req.file.filename);
+    if (!req.file) {
+      return res.status(400).send('No files were uploaded');
+    }
+    else {
+      console.dir(req.file);
+      return res.status(200).send('File ' + req.file.filename + ' uploaded');
     }
 });
 
@@ -59,5 +82,4 @@ app.listen(3000, function () {
   console.log('Elastic search URL: ', esHost);
   console.log('Base dir: ', baseDir);
 });
-
 
